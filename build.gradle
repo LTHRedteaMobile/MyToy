@@ -1,0 +1,38 @@
+plugins {
+	id 'org.springframework.boot' version '2.1.12.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+	id 'java'
+}
+
+group = 'com.redteamobile'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+	mavenCentral()
+	maven{
+		url "http://repo.redtea.io:8081/nexus/content/groups/public/"
+	}
+}
+
+ext {
+	set('springBootAdminVersion', "2.1.6")
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'de.codecentric:spring-boot-admin-starter-client'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	compile("com.redteamobile:credential:0.1.17")
+    compile group: 'com.google.guava', name: 'guava', version: '23.0'
+	compile('org.projectlombok:lombok')
+	compile("org.bouncycastle:bcprov-jdk15on:1.57")
+	compile("org.bouncycastle:bcpkix-jdk15on:1.57")
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "de.codecentric:spring-boot-admin-dependencies:${springBootAdminVersion}"
+	}
+}
