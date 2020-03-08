@@ -29,6 +29,9 @@ dependencies {
 	compile('org.projectlombok:lombok')
 	compile("org.bouncycastle:bcprov-jdk15on:1.57")
 	compile("org.bouncycastle:bcpkix-jdk15on:1.57")
+	compile group: 'net.lingala.zip4j', name: 'zip4j', version: '1.3.2'
+	compile 'org.springframework.boot:spring-boot-starter-data-redis'
+	compile("org.apache.commons:commons-pool2")
 }
 
 dependencyManagement {

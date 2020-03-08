@@ -1,5 +1,6 @@
 package com.redteamobile.employee.controller;
 
+import com.redteamobile.employee.async.AsyncTask;
 import com.redteamobile.employee.model.req.FIFOReq;
 import com.redteamobile.employee.service.FIFOService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,8 @@ public class TestController {
 
     @Autowired
     private FIFOService fifoService;
+    @Autowired
+    private AsyncTask asyncTask;
 
     private Executor executor = Executors.newSingleThreadExecutor();
 
@@ -39,6 +42,12 @@ public class TestController {
             }
         }
 
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/work" , method = RequestMethod.GET)
+    public void work(){
+        asyncTask.work();
     }
 
     class TransferTask implements Runnable{
