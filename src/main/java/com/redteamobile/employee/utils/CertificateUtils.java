@@ -21,7 +21,6 @@ public class CertificateUtils {
         if (Strings.isNullOrEmpty(publicKeyString)) {
             return null;
         }
-
         PublicKey publicKey = null;
         byte[] pubKeyBytes = Base64Utils.decodeFromString(publicKeyString);
         try {
