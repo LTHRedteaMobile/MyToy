@@ -2,14 +2,13 @@ package com.redteamobile.employee;
 
 import com.alibaba.excel.EasyExcel;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.io.BaseEncoding;
 import com.redteamobile.credential.CredentialUtils;
 import com.redteamobile.credential.Crypto;
-import com.redteamobile.employee.model.excel.EidExcel;
 import com.redteamobile.employee.model.excel.ProfileExcel;
 import com.redteamobile.employee.utils.CertificateUtils;
 import com.redteamobile.employee.utils.CompressUtils;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -37,36 +36,49 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Base64Utils;
-
 import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import javax.swing.*;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.security.*;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.Security;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.ECGenParameterSpec;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 //@RunWith(SpringRunner.class)
 @SpringBootTest
@@ -80,7 +92,10 @@ public class EmployeeApplicationTests {
 
 	private static final String euiccCertPath = "src/main/resources/cert/euicc.pem";
 
+    private static byte[] seed =
+            String.valueOf(Calendar.getInstance().getTimeInMillis() % 1000).getBytes();
 
+    private static SecureRandom secureRandom = new SecureRandom(seed);
 
 	private static final String KEYPAIR_GENERATE_ALGORITHM = "EC";
 	private static final String EC_PARAMETER_SECP256R1 = "secp256r1";
@@ -107,16 +122,8 @@ public class EmployeeApplicationTests {
 		}
 	}
 
-	@Autowired
-	private RedisTemplate<String, List<String>> certRelationship;
-
 	@Test
 	public void contextLoads() {
-	}
-
-	@Test
-	public void testKeyPair() throws Exception{
-
 	}
 
 	private static CertificateFactory factory = null;
@@ -233,34 +240,10 @@ public class EmployeeApplicationTests {
 
 	@Test
 	public void testAES() throws Exception{
-		//System.out.println(HexUtils.toHexString(Base64Utils.decodeFromString("S7izX3H/K/XXB2E61ovzFQ==")));
-		String SHARED_PROFILE_AES_KEY = "6F96CFDFE5CCC627CADF24B41725CAA4";
-		ECPrivateKey privateKey = (ECPrivateKey) CertificateUtils.convertStringToPrivateKey("MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg7qY/cOTpOm/rfqex60hGyGPKyYqG+BvaHrRlLZx4pY+hRANCAARc3zhDjBZ7cZLo3NpCgTBwmnjLMFPgcvNN0eQJuop7O5pVOBJ05zWOs3kK0UsgmGLVwWPNOTJKAbc23+/zKH8v");
+		String s = "redtea";
+		byte[] data = s.getBytes();
+		byte[] key = Base64Utils.decodeFromString("37PJO2TcW7qHRUw8OwmNy20rl6X9PDpC0n/OlEQ5wxU=");
 
-		//System.out.println(HexUtils.toHexString(privateKey.getS().toByteArray()));
-
-		//ECPrivateKey privateKey2 = (ECPrivateKey) CertificateUtils.convertStringToPrivateKey("MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg4ZXCdCWeNSPTpvUK" +
-		//"KRsZKHURnxKbniE2sq7a8qo67lOhRANCAAR7ryt+AvDu5vZSSiWk8EnJUM3Vz8hj" +
-		//"1Q53In4RepbmhCW8foa2eSLECGZ6jbekdEv7PT744KupXXzf6qJTJmS7");
-		//System.out.println(privateKey2.getS().toByteArray().length);
-
-		//System.out.println(HexUtils.toHexString(privateKey2.getS().toByteArray()));
-
-		//byte[] privateKeyBytes = new byte[32];
-		//System.arraycopy(privateKey.getS().toByteArray(), 1, privateKeyBytes, 0, 32);
-		//System.out.println(HexUtils.toHexString(privateKeyBytes));
-		//System.out.println(HexUtils.toHexString(encryptWithAES(privateKeyBytes, HexUtils.fromHexString(SHARED_PROFILE_AES_KEY), new byte[16])));
-
-		PublicKey publicKey = CertificateUtils.convertStringToPublicKey("MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEXN84Q4wWe3GS6NzaQoEwcJp4yzBT4HLzTdHkCbqKezuaVTgSdOc1jrN5CtFLIJhi1cFjzTkySgG3Nt/v8yh/Lw==");
-
-		byte[] origin = "redteamobile".getBytes();
-
-		Signature signature = Signature.getInstance("SHA256withECDSA");
-		signature.initVerify(publicKey);
-		signature.update(origin);
-
-		byte[] ooo = CredentialUtils.encodeToECDSASignature(HexUtils.fromHexString("C5001D1387297425CAF802EDD3F33AD03A42DECE3C141078380B6C02FD4BC8EDC2B7A399C06628EC4F2AB2A17E6F45CF3D67755A0913635D73C515B516B91713"));
-		signature.verify(ooo);
 	}
 
 	private static byte[] encryptWithAES(byte[] data, byte[] key, byte[] initializationVector) throws Exception {
@@ -285,12 +268,13 @@ public class EmployeeApplicationTests {
 
 	@Test
 	public void testFormat(){
-		/*String privateKey = "MEECAQAwEwYHKoZIzj0CAQYIKoZIzj0DAQcEJzAlAgEBBCDLeRXBOSQRK357XJlqttpx0Sz/5y0/Q47O2ZRbkLcH7A==";
+String privateKey = "MEECAQAwEwYHKoZIzj0CAQYIKoZIzj0DAQcEJzAlAgEBBCDLeRXBOSQRK357XJlqttpx0Sz/5y0/Q47O2ZRbkLcH7A==";
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("-----BEGIN PRIVATE KEY-----\n")
 				.append(privateKey)
 				.append("\n-----END PRIVATE KEY-----\n");
-		System.out.println(stringBuilder.toString());*/
+		System.out.println(stringBuilder.toString());
+
 		String s = "-----BEGIN PRIVATE KEY-----\n" +
 				"MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQghhV699yyrgSZVOOO\n" +
 				"e2WcSX+op0lZfkGSXChVVH6p3quhRANCAATzuaDpEocQZ7lXDWxjwLmITlJt7g8K\n" +
@@ -308,14 +292,6 @@ public class EmployeeApplicationTests {
 		return result;
 	}
 
-	@Test
-	public void testRedis(){
-		certRelationship.opsForValue().set("1111" , new ArrayList<>());
-		List<String> list = certRelationship.opsForValue().get("1111");
-		list.add("22222");
-		certRelationship.opsForValue().set("1111" , list);
-		System.out.println(certRelationship.opsForValue().get("1111").get(0));
-	}
 
 	@Test
 	public void testCredential() throws Exception{
@@ -432,19 +408,42 @@ public class EmployeeApplicationTests {
 		String keyStoreFilePath = "src/main/resources/nuSIMKeystore.bks";
 		KeyStore keyStore = KeyStore.getInstance("BKS" , "BC");
 		keyStore.load(new FileInputStream(keyStoreFilePath) , "redtea".toCharArray());
-		/*PrivateKey privateKey = CertificateUtils.convertStringToPrivateKey("MIGIAgEAMBQGByqGSM49AgEGCSskAwMCCAEBBwRtMGsCAQEEIAj8ZeabF9raq/iYhXsh6dU02dB/RCKs8YXg0F1EP534oUQDQgAEepz7TAYWfqXdhxvKPwN6Vh1LjlZUt126DSabGQhKoc1SNPDBSbSrS9s7N/IsKvdtGlKWTRL6ehvMe10oChTHqA==");
+         PrivateKey privateKey = CertificateUtils.convertStringToPrivateKey("MIGIAgEAMBQGByqGSM49AgEGCSskAwMCCAEBBwRtMGsCAQEEIAj8ZeabF9raq/iYhXsh6dU02dB/RCKs8YXg0F1EP534oUQDQgAEepz7TAYWfqXdhxvKPwN6Vh1LjlZUt126DSabGQhKoc1SNPDBSbSrS9s7N/IsKvdtGlKWTRL6ehvMe10oChTHqA==");
 		keyStore.setKeyEntry("cmPrivate" , privateKey, "redtea".toCharArray(),new java.security.cert.Certificate[]{cmCertificate});
 		FileOutputStream fileOutputStream = new FileOutputStream("src/main/resources/nuSIMKeystore.bks");
 		keyStore.store(fileOutputStream , "redtea".toCharArray());
-		fileOutputStream.close();*/
+		fileOutputStream.close();
+
 
 		//String keyStoreFilePath = "src/main/resources/keystore.jks";
 		//KeyStore keyStore = KeyStore.getInstance("JKS");
 		//keyStore.load(new FileInputStream(keyStoreFilePath) , "redtea".toCharArray());
-		PrivateKey privateKey = (PrivateKey) keyStore.getKey("cmPrivate" , "redtea".toCharArray());
+		//PrivateKey privateKey = (PrivateKey) keyStore.getKey("cmPrivate" , "redtea".toCharArray());
 		System.out.println(Base64Utils.encodeToString(CredentialUtils.encodePrivateKey(privateKey)));
 		//FileInputStream fileInputStream = new FileInputStream(CMCertPath);
 		//X509Certificate cmCertificate = (X509Certificate) factory.generateCertificate(fileInputStream);
+	}
+
+	@Test
+	public void changePassword() throws Exception{
+		String keyStoreFilePath = "src/main/resources/BipKeystore.jks";
+		KeyStore keyStore = KeyStore.getInstance("JCEKS");
+		keyStore.load(new FileInputStream(keyStoreFilePath) , "654321".toCharArray());
+		//SecretKey secretKey1 = (SecretKey) keyStore.getKey("PSK" , "654321".toCharArray());
+		//SecretKey secretKey2 = (SecretKey) keyStore.getKey("PSK111" , "654321".toCharArray());
+		//System.out.println(HexUtils.toHexString(secretKey1.getEncoded()));
+		//System.out.println(HexUtils.toHexString(secretKey2.getEncoded()));
+
+		String pwd = "43654297387968386849380867064969";
+		byte[] bytes = HexUtils.fromHexString(pwd);
+		SecretKey secretKey = new SecretKeySpec(bytes , "JKS");
+		KeyStore.SecretKeyEntry entry = new KeyStore.SecretKeyEntry(secretKey);
+		keyStore.setEntry("PSK" , entry, new KeyStore.PasswordProtection("654321".toCharArray()));
+
+
+		FileOutputStream fileOutputStream = new FileOutputStream("src/main/resources/BipKeystore.jks");
+		keyStore.store(fileOutputStream , "654321".toCharArray());
+
 	}
 
 	@Test
@@ -457,10 +456,20 @@ public class EmployeeApplicationTests {
 		list.add("5");
 		list.add("6");
 		list.add("7");
-		List<String> list1 = list.stream().filter(s -> !(Integer.valueOf(s) < 5)).collect(Collectors.toList());
-		for (String s:list1) {
-			System.out.println(s);
-		}
+		List<List<String>> result = Lists.partition(list , 3);
+		//System.out.println("result  size = " + RamUsageEstimator.humanSizeOf(result));
+		//System.out.println("list  size = " + RamUsageEstimator.humanSizeOf(list));
+		result.get(0).clear();
+		System.out.println(result.get(0));
+		result.get(0).clear();
+		System.out.println(result.get(0));
+
+
+		//result.get().clear();
+		//System.out.println("Profile list size = " + RamUsageEstimator.humanSizeOf(result));
+		//System.out.println("list  size = " + RamUsageEstimator.humanSizeOf(list));
+		//System.out.println(list.get(1));
+
 
 
 	}
@@ -476,7 +485,7 @@ public class EmployeeApplicationTests {
 	private List<ProfileExcel> prepareData(){
 	    List<ProfileExcel> result = new LinkedList<>();
 	    int iccid = 100003098;
-	    String iccidPrefix = "89886013137";
+	    String iccidPrefix = "19886013137";
 	    int imsi = 1300000309;
 	    String imsiPrefix = "46601";
 	    for(int i = 0 ; i < 100000 ; i ++){
@@ -497,12 +506,13 @@ public class EmployeeApplicationTests {
 	}
 	@Test
 	public void debug() throws Exception{
-		/*FileInputStream fileInputStream = new FileInputStream(eumertPath);
+FileInputStream fileInputStream = new FileInputStream(eumertPath);
 		X509Certificate EUM = (X509Certificate) factory.generateCertificate(fileInputStream);
 		FileInputStream fileInputStream1 = new FileInputStream(euiccCertPath);
 		X509Certificate EUICC = (X509Certificate) factory.generateCertificate(fileInputStream1);
 
-		EUICC.verify(EUM.getPublicKey());*/
+		EUICC.verify(EUM.getPublicKey());
+
 
 		System.out.println(checkEid("8902302200001000000aa00003645777"));
 
@@ -570,10 +580,55 @@ public class EmployeeApplicationTests {
 
 	@Test
     public void stringToOTA(){
-	   List<String> list = new ArrayList<>();
+List<String> list = new ArrayList<>();
 	   list.add("1");
-	   list.add("1");
-        Set<String> set = new HashSet<>(list);
-	   System.out.println(set.size());
+	   list.add("2");
+	   List<String> list2 = new ArrayList<>(list);
+	   list2.remove(1);
+	   System.out.println(list);
+
+
+	   //System.out.println("B000F1460F5254473030303237303535338944500703196198134F8683800382549300010202404201047523882360008222063F".toLowerCase());
+byte[] bytes = HexUtils.fromHexString("B000F1460F5254473030303237303535338944500703196198134F8683800382549300010202404201047523882360008222063F");
+		java.lang.String  s = new java.lang.String(bytes);
+
+		s = "";
+		testString(s);
+		System.out.println(s);
     }
+
+    private void testString(String s){
+		s = "111";
+	}
+
+
+	@Test
+    public void testKeyPair2() throws Exception{
+	    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
+
+    }
+
+	@Test
+	public void testFeign() throws Exception{
+	   /* byte[] bytes = new byte[16];
+	    secureRandom.nextBytes(bytes);
+	    System.out.println(HexUtils.toHexString(bytes));
+	    ItoOSP(10, bytes);
+        System.out.println(HexUtils.toHexString(bytes));*/
+
+
+        //Calendar calendar = Calendar.getInstance();
+        //calendar.setTime(new Date());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+        System.out.println(sdf.format(new Date()));
+    }
+
+    private static void ItoOSP(int i, byte[] sp)
+    {
+        sp[12] = (byte)(i >>> 24);
+        sp[13] = (byte)(i >>> 16);
+        sp[14] = (byte)(i >>> 8);
+        sp[15] = (byte)(i >>> 0);
+    }
+
 }

@@ -25,9 +25,9 @@ public class FIFOService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FIFOService.class);
 
-    private Map<Integer , ExecutorService> threadPoolMap = new HashMap<>(24);
+    private Map<Integer, ExecutorService> threadPoolMap = new HashMap<>(24);
 
-    private Map<Integer , ReentrantLock> lockMap = new HashMap<>();
+    private Map<Integer, ReentrantLock> lockMap = new HashMap<>();
 
     @Autowired
     private WorkService workService;
